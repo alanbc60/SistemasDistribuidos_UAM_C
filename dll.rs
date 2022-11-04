@@ -33,6 +33,21 @@ impl<T> DoublyLinkedList<T> {
             size: 0,
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+        // insert: inserta un nodo en la posición indicada por el
+        // usuario, regresa un iterador al nodo insertado.
+    
+        // erase: elimina el nodo de la posición indicada por el
+        // usuario, regresa un iterador nodo que sigue después del
+        // nodo eliminado.
+    
+        // find: encuentra un objeto en la lista, regresa un iterador
+        // al elemento buscado si el elemento se encuentra se
+        // encuentra, de lo contrario se regresa None.
     
     pub fn push_back(&mut self, item: T) {
         let node = Rc::new(RefCell::new(ListNode::new(item)));
@@ -46,7 +61,7 @@ impl<T> DoublyLinkedList<T> {
             self.tail = Some(node);
             self.size = 1;
         }
-        println!("Creados\n");
+        println!("CREATED\n");
     }
 
     pub fn push_front(&mut self, item: T) {
@@ -61,7 +76,24 @@ impl<T> DoublyLinkedList<T> {
             self.tail = Some(node);
             self.size = 1;
         }
-    }    
+    }
+    
+    pub fn pop_front(&mut self) -> Option<T> {
+        self.head.take().map(|prev_head| {
+            self.size -= 1;
+            match prev_head.borrow_mut().next.take() {
+                Some(node) => {
+                    node.borrow_mut().prev = None;
+                    self.head = Some(node);
+                }
+                None => {
+                    self.tail.take();
+                }
+            }
+            Rc::try_unwrap(prev_head).ok().unwrap().into_inner().item
+        })
+    }
+    
 }
 
 impl<T> Drop for DoublyLinkedList<T> {
@@ -69,7 +101,7 @@ impl<T> Drop for DoublyLinkedList<T> {
         while let Some(node) = self.head.take() {
             let _ = node.borrow_mut().prev.take();
             self.head = node.borrow_mut().next.take();
-            println!("Destruido\n");
+            println!("DESTROYED\n");
         }
         self.tail.take();
     }
